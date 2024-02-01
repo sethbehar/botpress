@@ -6,6 +6,7 @@ type BaseEvents = Record<string, AnyZodObject>
 type BaseActions = Record<string, Record<'input' | 'output', AnyZodObject>>
 type BaseChannels = Record<string, Record<string, AnyZodObject>>
 type BaseStates = Record<string, AnyZodObject>
+type BaseEntities = Record<string, AnyZodObject>
 
 type TagDefinition = {
   title?: string
@@ -72,12 +73,17 @@ type SecretDefinition = {
   description?: string
 }
 
+type EntityDefinition<TEntity extends BaseEntities[string]> = SchemaDefinition<TEntity> & {
+  description?: string
+}
+
 export type IntegrationDefinitionProps<
   TConfig extends BaseConfig = BaseConfig,
   TEvents extends BaseEvents = BaseEvents,
   TActions extends BaseActions = BaseActions,
   TChannels extends BaseChannels = BaseChannels,
-  TStates extends BaseStates = BaseStates
+  TStates extends BaseStates = BaseStates,
+  TEntities extends BaseEntities = BaseEntities
 > = {
   name: string
   version: '0.2.0' | '0.0.1' // TODO: allow any version
@@ -110,6 +116,10 @@ export type IntegrationDefinitionProps<
   user?: UserDefinition
 
   secrets?: Record<string, SecretDefinition>
+
+  entities?: {
+    [K in keyof TEntities]: EntityDefinition<TEntities[K]>
+  }
 }
 
 export class IntegrationDefinition<
@@ -139,6 +149,7 @@ export class IntegrationDefinition<
   public readonly user: IntegrationDefinitionProps<TConfig, TEvents, TActions, TChannels, TStates>['user']
   public readonly secrets: IntegrationDefinitionProps<TConfig, TEvents, TActions, TChannels, TStates>['secrets']
   public readonly identifier: IntegrationDefinitionProps<TConfig, TEvents, TActions, TChannels, TStates>['identifier']
+  public readonly entities: IntegrationDefinitionProps<TConfig, TEvents, TActions, TChannels, TStates>['entities']
 
   public constructor(props: IntegrationDefinitionProps<TConfig, TEvents, TActions, TChannels, TStates>) {
     const {
@@ -156,6 +167,7 @@ export class IntegrationDefinition<
       user,
       secrets,
       identifier,
+      entities,
     } = props
     this.name = name
     this.version = version
@@ -171,5 +183,6 @@ export class IntegrationDefinition<
     this.states = states
     this.user = user
     this.secrets = secrets
+    this.entities = entities
   }
 }
